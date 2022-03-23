@@ -6,9 +6,9 @@
 UENUM(BlueprintType, Blueprintable)
 enum ETMTimePeriod 
 {
-	Once = 0,
-	Second = 1,
-	Minute = 60,
-	Hour = 3600,
-	Day = 86400
+	Once,
+	Second,
+	Minute,
+	Hour,
+	Day 
 };

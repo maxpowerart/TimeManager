@@ -4,10 +4,20 @@
 #include "TimeManagerSubsystem.h"
 
 #include "TimeControlled.h"
+#include "TimeManagerHelper.h"
 #include "Types/TimeManagerProperties.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Types/TMTimerHeapOrder.h"
+
+static const TMap<ETMTimePeriod, int64> PeriodDuration =
+{
+	{Once, 0},
+	{Second, 1},
+	{Minute, 60},
+	{Hour, 3600},
+	{Day, 86400}
+};
 
 UTimeManagerSubsystem::UTimeManagerSubsystem()
 {
@@ -17,7 +27,6 @@ UTimeManagerSubsystem::UTimeManagerSubsystem()
 	DayPeriodEvents.Add(ETMDayPeriod::Dawn, FTMDayPeriodUnifiedMulticastDelegate());
 	DayPeriodEvents.Add(ETMDayPeriod::Dusk, FTMDayPeriodUnifiedMulticastDelegate());
 }
-
 void UTimeManagerSubsystem::OnGameBegin()
 {
 	/**Set dusk-dawn timers*/
@@ -167,8 +176,13 @@ FTMTimerHandle UTimeManagerSubsystem::InternalBindEventByTime(FTimespan InitialT
 		return Handle; 
 	}
 
-	InternalSetTimer(Handle, Event, static_cast<double>(Period) * ETimespan::TicksPerSecond,
-		FMath::Abs(GetCurrentDateTime().GetTimeOfDay() - InitialTime.GetTicks()), Period != ETMTimePeriod::Once);
+	
+	const FTimespan Delay =  InitialTime.GetTicks() - GetCurrentDateTime().GetTimeOfDay().GetTicks() > 0 ?
+		InitialTime.GetTicks() - GetCurrentDateTime().GetTimeOfDay().GetTicks() : 
+		FTimespan(ETimespan::TicksPerDay).GetTicks() - (GetCurrentDateTime().GetTimeOfDay().GetTicks()  - InitialTime.GetTicks());
+	const FTimespan Rate = PeriodDuration[Period] * ETimespan::TicksPerSecond;
+
+	InternalSetTimer(Handle, Event, Rate, Delay, Period != Once);
 	return Handle; 
 }
 FTMTimerHandle UTimeManagerSubsystem::InternalBindEventByDateAndTime(FDateTime DateTime, FTMTimerUnifiedDelegate& Event)
