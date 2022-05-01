@@ -118,10 +118,12 @@ float UTimeManagerHelper::K2_GetTimerExecutionPercent(const UObject* WorldContex
 {
 	if (InHandle.IsValid())
 	{
-		UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+		const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 		if (World)
 		{
-			return World->GetSubsystem<UTimeManagerSubsystem>()->GetTimerExecutionPercent(InHandle);
+			return World->GetSubsystem<UTimeManagerSubsystem>()->GetTimerElapsedTimeInSeconds(InHandle) /
+				(World->GetSubsystem<UTimeManagerSubsystem>()->GetTimerElapsedTimeInSeconds(InHandle) +
+					World->GetSubsystem<UTimeManagerSubsystem>()->GetTimerRemainingTimeInSeconds(InHandle));
 		}
 	}
 	return -1;
@@ -140,31 +142,6 @@ bool UTimeManagerHelper::K2_IsTimerActive(const UObject* WorldContextObject, FTM
 	return false;
 }
 
-void UTimeManagerHelper::K2_PauseGame(const UObject* WorldContextObject)
-{
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (World)
-	{
-		World->GetSubsystem<UTimeManagerSubsystem>()->PauseGame();
-	}
-}
-void UTimeManagerHelper::K2_ResumeGame(const UObject* WorldContextObject)
-{
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (World)
-	{
-		World->GetSubsystem<UTimeManagerSubsystem>()->ResumeGame();
-	}
-}
-bool UTimeManagerHelper::K2_IsGamePaused(const UObject* WorldContextObject)
-{
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (World)
-	{
-		return World->GetSubsystem<UTimeManagerSubsystem>()->IsGamePaused();
-	}
-	return false;
-}
 void UTimeManagerHelper::K2_ChangeGameTimeDilation(const UObject* WorldContextObject, float NewValue)
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);

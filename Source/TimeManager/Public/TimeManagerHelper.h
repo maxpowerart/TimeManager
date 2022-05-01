@@ -38,13 +38,7 @@ public:
 	static float K2_GetTimerExecutionPercent(const UObject* WorldContextObject, FTMTimerHandle InHandle);
 	UFUNCTION(BlueprintPure, Meta = (DisplayName = "Is Timer Active",WorldContext="WorldContextObject", ScriptName = "IsTimerActive"), Category="TM|Timer")
 	static bool K2_IsTimerActive(const UObject* WorldContextObject, FTMTimerHandle InHandle);
-
-	UFUNCTION(BlueprintCallable, Meta = (DisplayName = "Pause Game",WorldContext="WorldContextObject", ScriptName = "PauseGame"), Category = "TM|State")
-	static void K2_PauseGame(const UObject* WorldContextObject);
-	UFUNCTION(BlueprintCallable, Meta = (DisplayName = "Resume Game",WorldContext="WorldContextObject", ScriptName = "ResumeGame"), Category = "TM|State")
-	static void K2_ResumeGame(const UObject* WorldContextObject);
-	UFUNCTION(BlueprintPure, Meta = (DisplayName = "Is Game Paused",WorldContext="WorldContextObject", ScriptName = "IsGamePaused"), Category = "TM|State")
-	static bool K2_IsGamePaused(const UObject* WorldContextObject);
+	
 	UFUNCTION(BlueprintCallable, Meta = (DisplayName = "Change Game Time Dilation", WorldContext="WorldContextObject", ScriptName = "ChangeGameTimeDilation", UIMin = 0.000020, ClampMax = 20.f, UIMax = 20.f), Category = "TM|State")
 	static void K2_ChangeGameTimeDilation(const UObject* WorldContextObject, float NewValue);
 	UFUNCTION(BlueprintPure, Meta = (DisplayName = "Get Current Game Time", WorldContext="WorldContextObject", ScriptName = "GetCurrentGameTime"), Category = "TM|State")

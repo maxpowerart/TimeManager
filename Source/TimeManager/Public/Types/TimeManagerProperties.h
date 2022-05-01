@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "TMDayPeriod.h"
 #include "TimeManagerProperties.generated.h"
 
 UCLASS(Config=Game, defaultconfig)
@@ -20,10 +19,4 @@ public:
 
 	UPROPERTY(EditAnywhere, Config)
 	FDateTime InitialDateTime;
-
-	UPROPERTY(EditAnywhere, Config)
-	FTimespan DawnTime;
-
-	UPROPERTY(EditAnywhere, Config)
-	FTimespan DuskTime;
 };

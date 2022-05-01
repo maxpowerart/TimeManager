@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "Types/TMDayPeriod.h"
-#include "Types/TMDayPeriodUnifiedMulticastDelegate.h"
 #include "Types/TMTimePeriod.h"
 #include "Types/TMTimerData.h"
 #include "Types/TMTimerHandle.h"
@@ -81,39 +79,14 @@ public:
 	/**Conversion methods*/
 	FTimespan RealTimeFloatToGameTimestamp(float RealTime) const;
 	float GameTimestampToRealTimeFloat(FTimespan GameTime) const;
-
-	FORCEINLINE void BindEventByDayPeriod(ETMDayPeriod DayPeriod, FTMDayPeriodUpdate& Event)
-	{
-		DayPeriodEvents[DayPeriod].Add(Event);
-	}
-	FORCEINLINE void BindEventByDayPeriod(ETMDayPeriod DayPeriod, FTMDynamicDayPeriodUpdate& Event)
-	{
-		DayPeriodEvents[DayPeriod].Add(Event);
-	}
-	FORCEINLINE void UnbindEventByDayPeriod(ETMDayPeriod DayPeriod, FTMDayPeriodUpdate& Event)
-	{
-		DayPeriodEvents[DayPeriod].Remove(Event);
-	}
-	FORCEINLINE void UnbindEventByDayPeriod(ETMDayPeriod DayPeriod, FTMDynamicDayPeriodUpdate& Event)
-	{
-		DayPeriodEvents[DayPeriod].Remove(Event);
-	}
-	FORCEINLINE void UnbindAllEventByDayPeriod(ETMDayPeriod DayPeriod, UObject* Source)
-	{
-		DayPeriodEvents[DayPeriod].UnbindAll(Source);
-	}
 	
 	/*****************************************/
 	/*******Time-management functional********/
 	/*****************************************/
 	
-	void PauseGame();
-	void ResumeGame();
-	bool IsGamePaused() const;
 	void ChangeGameTimeDilation(float NewValue);
 	void ChangeGameTime(FTimespan NewGameTime);
 	float GetCurrentGameTimeDilation() const;
-	ETMDayPeriod GetCurrentDayPeriod() const;
 
 	UPROPERTY(BlueprintAssignable)
 	FTMOnTimeManualChanged OnTimeManualChanged;
@@ -122,7 +95,6 @@ private:
 
 	FTMTimerHandle InternalBindEventByTime(FTimespan InitialTime, FTMTimerUnifiedDelegate& Event, ETMTimePeriod Period = ETMTimePeriod::Day);
 	FTMTimerHandle InternalBindEventByDateAndTime(FDateTime DateTime, FTMTimerUnifiedDelegate& Event);
-	void OnDayPeriodUpdated(ETMDayPeriod NewPeriod);
 	
 	/**Current date/time*/
 	double CurrentDateTime;
@@ -130,11 +102,6 @@ private:
 	float CurrentDilation = 1.f;
 	/** TimeCoefficient = GameTime/RealTime */
 	float TimeCoefficient = 1.f;
-
-	/**Time-period based events*/
-	UPROPERTY()
-	TMap<ETMDayPeriod, FTMDayPeriodUnifiedMulticastDelegate> DayPeriodEvents;
-	ETMDayPeriod CurrentDayPeriod;
 
 	/********************************************/
 	/************Timer functional****************/
@@ -259,7 +226,6 @@ public:
 	bool IsTimerPaused(FTMTimerHandle InHandle);
 	FTimespan GetTimerElapsedTime(FTMTimerHandle InHandle);
 	FTimespan GetTimerRemainingTime(FTMTimerHandle InHandle);
-	float GetTimerExecutionPercent(FTMTimerHandle InHandle);
 	
 private:
 

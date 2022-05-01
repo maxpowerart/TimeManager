@@ -23,31 +23,9 @@ UTimeManagerSubsystem::UTimeManagerSubsystem()
 {
 	CurrentDateTime = GetMutableDefault<UTimeManagerProperties>()->InitialDateTime.GetTicks();
 	TimeCoefficient = GetMutableDefault<UTimeManagerProperties>()->TimeCoefficient;
-	
-	DayPeriodEvents.Add(ETMDayPeriod::Dawn, FTMDayPeriodUnifiedMulticastDelegate());
-	DayPeriodEvents.Add(ETMDayPeriod::Dusk, FTMDayPeriodUnifiedMulticastDelegate());
 }
 void UTimeManagerSubsystem::OnGameBegin()
 {
-	/**Set dusk-dawn timers*/
-	const FTMTimerDelegate DawnDelegate = FTMTimerDelegate::CreateUObject(this, &UTimeManagerSubsystem::OnDayPeriodUpdated, ETMDayPeriod::Dawn);
-	BindEventByTime(GetMutableDefault<UTimeManagerProperties>()->DawnTime, DawnDelegate);
-
-	const FTMTimerDelegate DuskDelegate = FTMTimerDelegate::CreateUObject(this, &UTimeManagerSubsystem::OnDayPeriodUpdated, ETMDayPeriod::Dusk);
-	BindEventByTime(GetMutableDefault<UTimeManagerProperties>()->DuskTime, DuskDelegate);
-	
-	/**Find initial period*/
-	if(FDateTime(CurrentDateTime).GetTimeOfDay() >GetMutableDefault<UTimeManagerProperties>()->DawnTime &&
-		FDateTime(CurrentDateTime).GetTimeOfDay() < GetMutableDefault<UTimeManagerProperties>()->DuskTime)
-	{
-		OnDayPeriodUpdated(ETMDayPeriod::Dawn);
-	}
-	else OnDayPeriodUpdated(ETMDayPeriod::Dusk);
-}
-
-ETMDayPeriod UTimeManagerSubsystem::GetCurrentDayPeriod() const
-{
-	return CurrentDayPeriod;
 }
 
 void UTimeManagerSubsystem::Tick(float DeltaTime)
@@ -60,7 +38,7 @@ void UTimeManagerSubsystem::Tick(float DeltaTime)
 	}
 	
 	/**Ignore time tick, if game is paused*/
-	if(IsGamePaused()) return;
+	if(CurrentDilation == 0) return;
 
 	const float CurrentTimeCoefficient = TimeCoefficient * CurrentDilation;
 
@@ -197,24 +175,7 @@ FTMTimerHandle UTimeManagerSubsystem::InternalBindEventByDateAndTime(FDateTime D
 	InternalSetTimer(Handle, Event, FMath::Abs(CurrentDateTime - DateTime.GetTicks()));
 	return Handle; 
 }
-void UTimeManagerSubsystem::OnDayPeriodUpdated(ETMDayPeriod NewPeriod)
-{
-	CurrentDayPeriod = NewPeriod;
-	DayPeriodEvents[NewPeriod].Execute();
-}
 
-void UTimeManagerSubsystem::PauseGame()
-{
-	if(!IsGamePaused()) ChangeGameTimeDilation(0.f);
-}
-void UTimeManagerSubsystem::ResumeGame()
-{
-	if(IsGamePaused()) ChangeGameTimeDilation(1.f);
-}
-bool UTimeManagerSubsystem::IsGamePaused() const
-{
-	return CurrentDilation == 0;
-}
 void UTimeManagerSubsystem::ChangeGameTimeDilation(float NewValue)
 {
 	TArray<AActor*> TimeControlled;
@@ -230,14 +191,6 @@ void UTimeManagerSubsystem::ChangeGameTime(FTimespan NewGameTime)
 {
 	CurrentDateTime = FDateTime(CurrentDateTime).GetDate().GetTicks() + NewGameTime.GetTicks();
 	OnTimeManualChanged.Broadcast();
-
-	/**Find initial period*/
-	if(FDateTime(CurrentDateTime).GetTimeOfDay() >GetMutableDefault<UTimeManagerProperties>()->DawnTime &&
-		FDateTime(CurrentDateTime).GetTimeOfDay() < GetMutableDefault<UTimeManagerProperties>()->DuskTime)
-	{
-		OnDayPeriodUpdated(ETMDayPeriod::Dawn);
-	}
-	else OnDayPeriodUpdated(ETMDayPeriod::Dusk);
 }
 
 float UTimeManagerSubsystem::GetCurrentGameTimeDilation() const
@@ -563,17 +516,6 @@ FTimespan UTimeManagerSubsystem::GetTimerRemainingTime(FTMTimerHandle InHandle)
 	}
 
 	return -1.f;
-}
-float UTimeManagerSubsystem::GetTimerExecutionPercent(FTMTimerHandle InHandle)
-{
-	FTMTimerData const* const TimerData = FindTimer(InHandle);
-	if (TimerData)
-	{
-		const float Percent = static_cast<double>(GetTimerElapsedTime(InHandle).GetTicks())
-		/ static_cast<double>(GetTimerElapsedTime(InHandle).GetTicks() + GetTimerRemainingTime(InHandle).GetTicks());
-		return Percent;
-	}
-	return 0.f;
 }
 
 FTMTimerHandle UTimeManagerSubsystem::GenerateHandle(int32 Index)
