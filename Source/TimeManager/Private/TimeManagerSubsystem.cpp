@@ -459,7 +459,11 @@ void UTimeManagerSubsystem::ClearTimer(FTMTimerHandle& Handle)
 		}
 
 	default:
-		check(false);
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s"), *UEnum::GetValueAsString(Data.Status));
+			//check(false);
+			break;
+		}
 	}
 }
 
