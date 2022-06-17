@@ -219,6 +219,7 @@ public:
 		return static_cast<double>(GetTimerRemainingTime(InHandle).GetTicks()) / ETimespan::TicksPerSecond / TimeCoefficient;
 	}
 	
+	void SetPlayRate(FTMTimerHandle InHandle, uint32 InPlayRate);
 	void PauseTimer(FTMTimerHandle InHandle);
 	void UnPauseTimer(FTMTimerHandle InHandle);
 	void ClearTimer(FTMTimerHandle& InDelegate);

@@ -26,6 +26,9 @@ struct FTMTimerData
 	/** Game timing until execution of current iteration of this timer */
 	FTimespan ExpireTime;
 
+	/** Current play rate of this timer*/
+	uint32 PlayRate = 1;
+
 	/** Holds the delegate to call. */
 	FTMTimerUnifiedDelegate TimerDelegate;
 

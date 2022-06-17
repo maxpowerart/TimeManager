@@ -84,7 +84,7 @@ void UTimeManagerSubsystem::Tick(float DeltaTime)
 				if (Top->bLoop && (!Top->bRequiresDelegate || Top->TimerDelegate.IsBound()))
 				{
 					// Put this timer back on the heap
-					Top->ExpireTime += Top->Rate;
+					Top->ExpireTime += FTimespan(Top->Rate.GetTicks() / static_cast<int64>(Top->PlayRate));
 					Top->Status = ETMTimerStatus::Active;
 					ActiveTimerHeap.HeapPush(CurrentlyExecutingTimer, FTMTimerHeapOrder(Timers));
 				}
@@ -244,6 +244,52 @@ void UTimeManagerSubsystem::InternalSetTimer(FTMTimerHandle& InOutHandle, FTMTim
 		InOutHandle.Invalidate();
 	}
 }
+
+void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, uint32 InPlayRate)
+{
+	// not currently threadsafe
+	check(IsInGameThread());
+
+	FTMTimerData* Timer = FindTimer(InHandle);
+	if (!Timer)
+	{
+		return;
+	}
+	const ETMTimerStatus State = Timer->Status;
+	switch(State)
+	{
+	case ETMTimerStatus::ActivePendingRemoval:
+		{
+			return;
+		}
+	case ETMTimerStatus::Active:
+		{
+			/**Change expire time*/
+			Timer->ExpireTime = FTimespan(CurrentDateTime + (Timer->ExpireTime.GetTicks() - CurrentDateTime) * Timer->PlayRate / InPlayRate);
+			Timer->PlayRate = InPlayRate;
+			break;
+		}
+	case ETMTimerStatus::Pending:
+		{
+			/**Change expire time*/
+			Timer->ExpireTime = FTimespan(Timer->ExpireTime.GetTicks() * Timer->PlayRate / InPlayRate);
+			Timer->PlayRate = InPlayRate;
+			break;
+		}
+	case ETMTimerStatus::Executing:
+		{
+			if(State == ETMTimerStatus::Executing && !Timer->bLoop) return;
+			Timer->PlayRate = InPlayRate;
+			/**Increases rate, if bLoop, may be not here*/
+			break;
+		}
+	default:
+		{
+			check(false);
+		}
+	}
+}
+
 void UTimeManagerSubsystem::PauseTimer(FTMTimerHandle InHandle)
 {
 	// not currently threadsafe
@@ -260,24 +306,24 @@ void UTimeManagerSubsystem::PauseTimer(FTMTimerHandle InHandle)
 	// Remove from previous TArray
 	switch(PreviousStatus)
 	{
-		case ETimerStatus::ActivePendingRemoval:
+		case ETMTimerStatus::ActivePendingRemoval:
 			{
 				break;
 			}
-		case ETimerStatus::Active:
+		case ETMTimerStatus::Active:
 			{
 				const int32 IndexIndex = ActiveTimerHeap.Find(InHandle);
 				check(IndexIndex != INDEX_NONE);
 				ActiveTimerHeap.HeapRemoveAt(IndexIndex, FTMTimerHeapOrder(Timers), /*bAllowShrinking=*/ false);
 				break;
 			}
-		case ETimerStatus::Pending:
+		case ETMTimerStatus::Pending:
 			{
 				const int32 NumRemoved = PendingTimerSet.Remove(InHandle);
 				check(NumRemoved == 1);
 				break;
 			}
-		case ETimerStatus::Executing:
+		case ETMTimerStatus::Executing:
 			{
 				check(CurrentlyExecutingTimer == InHandle);
 

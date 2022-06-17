@@ -61,6 +61,19 @@ void UTimeManagerHelper::K2_UnPauseTimer(const UObject* WorldContextObject, FTMT
 		}
 	}
 }
+
+void UTimeManagerHelper::K2_SetTimerRate(const UObject* WorldContextObject, FTMTimerHandle InHandle, int32 NewRate)
+{
+	if (InHandle.IsValid() && NewRate > 0)
+	{
+		UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+		if (World)
+		{
+			World->GetSubsystem<UTimeManagerSubsystem>()->SetPlayRate(InHandle, NewRate);
+		}
+	}
+}
+
 FTimespan UTimeManagerHelper::K2_GetTimerElapsedTime(const UObject* WorldContextObject, FTMTimerHandle InHandle)
 {
 	if (InHandle.IsValid())

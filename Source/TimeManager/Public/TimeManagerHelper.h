@@ -26,6 +26,8 @@ public:
 	static void K2_PauseTimer(const UObject* WorldContextObject, FTMTimerHandle InHandle);
 	UFUNCTION(BlueprintCallable,  Meta=(DisplayName = "Unpause Timer", WorldContext="WorldContextObject", ScriptName = "UnpauseTimer"), Category="TM|Timer")
 	static void K2_UnPauseTimer(const UObject* WorldContextObject, FTMTimerHandle InHandle);
+	UFUNCTION(BlueprintCallable,  Meta=(DisplayName = "Set Timer Rate", WorldContext="WorldContextObject", ScriptName = "SetTimerRate", ClampMin = 0, UIMin = 0), Category="TM|Timer")
+	static void K2_SetTimerRate(const UObject* WorldContextObject, FTMTimerHandle InHandle, int32 NewRate);
 	UFUNCTION(BlueprintPure, Meta = (DisplayName = "Get Timer Elapsed Time",WorldContext="WorldContextObject", ScriptName = "GetTimerelapsedTime"), Category="TM|Timer")
 	static FTimespan K2_GetTimerElapsedTime(const UObject* WorldContextObject, FTMTimerHandle InHandle);
 	UFUNCTION(BlueprintPure, Meta = (DisplayName = "Get Timer Remaining Time",WorldContext="WorldContextObject", ScriptName = "GetTimerRemainingTime"), Category="TM|Timer")
