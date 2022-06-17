@@ -181,6 +181,7 @@ public:
 	{
 		FTMTimerUnifiedDelegate Delegate;
 		Delegate.FuncDelegate = FTMTimerDelegate::CreateUObject(InObj, InTimerMethod);
+		UE_LOG(LogTemp, Warning, TEXT("Time %f"), InRate);
 		InternalSetTimer(InOutHandle, Delegate, InRate  * TimeCoefficient  * ETimespan::TicksPerSecond, InDelay, bLoop);
 	}
 	template<class UserClass>
@@ -219,7 +220,7 @@ public:
 		return static_cast<double>(GetTimerRemainingTime(InHandle).GetTicks()) / ETimespan::TicksPerSecond / TimeCoefficient;
 	}
 	
-	void SetPlayRate(FTMTimerHandle InHandle, uint32 InPlayRate);
+	void SetPlayRate(FTMTimerHandle InHandle, float InPlayRate);
 	void PauseTimer(FTMTimerHandle InHandle);
 	void UnPauseTimer(FTMTimerHandle InHandle);
 	void ClearTimer(FTMTimerHandle& InDelegate);

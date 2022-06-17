@@ -27,7 +27,7 @@ struct FTMTimerData
 	FTimespan ExpireTime;
 
 	/** Current play rate of this timer*/
-	uint32 PlayRate = 1;
+	float PlayRate = 1.f;
 
 	/** Holds the delegate to call. */
 	FTMTimerUnifiedDelegate TimerDelegate;

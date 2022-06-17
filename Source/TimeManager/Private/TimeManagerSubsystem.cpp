@@ -245,7 +245,7 @@ void UTimeManagerSubsystem::InternalSetTimer(FTMTimerHandle& InOutHandle, FTMTim
 	}
 }
 
-void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, uint32 InPlayRate)
+void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRate)
 {
 	// not currently threadsafe
 	check(IsInGameThread());
