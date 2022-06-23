@@ -283,6 +283,11 @@ void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRat
 			/**Increases rate, if bLoop, may be not here*/
 			break;
 		}
+	case ETMTimerStatus::Paused:
+		{
+			Timer->PlayRate = InPlayRate;
+			break;
+		}
 	default:
 		{
 			check(false);
