@@ -84,7 +84,7 @@ void UTimeManagerSubsystem::Tick(float DeltaTime)
 				if (Top->bLoop && (!Top->bRequiresDelegate || Top->TimerDelegate.IsBound()))
 				{
 					// Put this timer back on the heap
-					Top->ExpireTime += FTimespan(Top->Rate.GetTicks() / static_cast<int64>(Top->PlayRate));
+					Top->ExpireTime += FTimespan(Top->Rate.GetTicks());
 					Top->Status = ETMTimerStatus::Active;
 					ActiveTimerHeap.HeapPush(CurrentlyExecutingTimer, FTMTimerHeapOrder(Timers));
 				}
@@ -265,14 +265,16 @@ void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRat
 	case ETMTimerStatus::Active:
 		{
 			/**Change expire time*/
-			Timer->ExpireTime = FTimespan(CurrentDateTime + (Timer->ExpireTime.GetTicks() - CurrentDateTime) * Timer->PlayRate / InPlayRate);
+			Timer->Rate = FTimespan(static_cast<float>(Timer->Rate.GetTicks()) * Timer->PlayRate  / InPlayRate);
+			Timer->ExpireTime = FTimespan(CurrentDateTime + (static_cast<float>(Timer->ExpireTime.GetTicks()) - CurrentDateTime) * Timer->PlayRate / InPlayRate);
 			Timer->PlayRate = InPlayRate;
 			break;
 		}
 	case ETMTimerStatus::Pending:
 		{
 			/**Change expire time*/
-			Timer->ExpireTime = FTimespan(Timer->ExpireTime.GetTicks() * Timer->PlayRate / InPlayRate);
+			Timer->Rate = FTimespan(static_cast<float>(Timer->Rate.GetTicks()) * Timer->PlayRate  / InPlayRate);
+			Timer->ExpireTime = FTimespan(static_cast<float>(Timer->ExpireTime.GetTicks()) * Timer->PlayRate / InPlayRate);
 			Timer->PlayRate = InPlayRate;
 			break;
 		}
@@ -280,11 +282,12 @@ void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRat
 		{
 			if(State == ETMTimerStatus::Executing && !Timer->bLoop) return;
 			Timer->PlayRate = InPlayRate;
-			/**Increases rate, if bLoop, may be not here*/
+			Timer->Rate = FTimespan(static_cast<float>(Timer->Rate.GetTicks()) * Timer->PlayRate  / InPlayRate);
 			break;
 		}
 	case ETMTimerStatus::Paused:
 		{
+			Timer->Rate = FTimespan(static_cast<float>(Timer->Rate.GetTicks()) * Timer->PlayRate  / InPlayRate);
 			Timer->PlayRate = InPlayRate;
 			break;
 		}
@@ -536,15 +539,15 @@ FTimespan UTimeManagerSubsystem::GetTimerElapsedTime(FTMTimerHandle InHandle)
 		{
 		case ETMTimerStatus::Active:
 			{
-				return TimerData->Rate - (TimerData->ExpireTime - CurrentDateTime);
+				return (TimerData->Rate - (TimerData->ExpireTime - CurrentDateTime)) * TimerData->PlayRate;
 			}
 		case ETMTimerStatus::Executing:
 			{
-				return TimerData->Rate;
+				return (TimerData->Rate) * TimerData->PlayRate;
 			}
 		default:
 			// ExpireTime is time remaining for paused timers
-			return TimerData->Rate - TimerData->ExpireTime;
+			return (TimerData->Rate - TimerData->ExpireTime) * TimerData->PlayRate;
 		}
 	}
 
@@ -558,14 +561,14 @@ FTimespan UTimeManagerSubsystem::GetTimerRemainingTime(FTMTimerHandle InHandle)
 		switch (TimerData->Status)
 		{
 		case ETMTimerStatus::Active:
-			return TimerData->ExpireTime - CurrentDateTime;
+			return (TimerData->ExpireTime - CurrentDateTime) * TimerData->PlayRate;
 
 		case ETMTimerStatus::Executing:
 			return 0.0f;
 
 		default:
 			// ExpireTime is time remaining for paused timers
-			return TimerData->ExpireTime;
+			return TimerData->ExpireTime * TimerData->PlayRate;
 		}
 	}
 

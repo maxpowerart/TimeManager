@@ -62,7 +62,7 @@ void UTimeManagerHelper::K2_UnPauseTimer(const UObject* WorldContextObject, FTMT
 	}
 }
 
-void UTimeManagerHelper::K2_SetTimerRate(const UObject* WorldContextObject, FTMTimerHandle InHandle, int32 NewRate)
+void UTimeManagerHelper::K2_SetTimerRate(const UObject* WorldContextObject, FTMTimerHandle InHandle, float NewRate)
 {
 	if (InHandle.IsValid() && NewRate > 0)
 	{
