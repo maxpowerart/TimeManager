@@ -255,6 +255,7 @@ void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRat
 	{
 		return;
 	}
+	
 	const ETMTimerStatus State = Timer->Status;
 	switch(State)
 	{
@@ -264,10 +265,14 @@ void UTimeManagerSubsystem::SetPlayRate(FTMTimerHandle InHandle, float InPlayRat
 		}
 	case ETMTimerStatus::Active:
 		{
+			ActiveTimerHeap.HeapPop(InHandle, FTMTimerHeapOrder(Timers), /*bAllowShrinking=*/ false);
+
 			/**Change expire time*/
 			Timer->Rate = FTimespan(static_cast<float>(Timer->Rate.GetTicks()) * Timer->PlayRate  / InPlayRate);
 			Timer->ExpireTime = FTimespan(CurrentDateTime + (static_cast<float>(Timer->ExpireTime.GetTicks()) - CurrentDateTime) * Timer->PlayRate / InPlayRate);
 			Timer->PlayRate = InPlayRate;
+			
+			ActiveTimerHeap.HeapPush(InHandle, FTMTimerHeapOrder(Timers));
 			break;
 		}
 	case ETMTimerStatus::Pending:
